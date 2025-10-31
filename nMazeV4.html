@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>nMaze™ | Design. Predict. Deliver.</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+    .header { background: #1e293b; padding: 30px; text-align: center; border-bottom: 4px solid #ec4899; }
+    .header h1 { font-size: 3em; color: #f472b6; margin: 0; letter-spacing: -1px; }
+    .header p { font-size: 1.3em; color: #fce7f3; margin-top: 8px; font-weight: 500; }
+    .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 28px; }
+    .card { background: #1e293b; border-radius: 18px; padding: 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid #334155; transition: transform 0.3s; }
+    .card:hover { transform: translateY(-6px); }
+    .card h3 { color: #f472b6; margin-bottom: 18px; font-size: 1.6em; display: flex; align-items: center; gap: 10px; }
+    .param { margin: 16px 0; }
+    .param label { display: block; font-weight: bold; margin-bottom: 7px; color: #94a3b8; font-size: 0.95em; }
+    .param input[type="range"] { width: 100%; height: 9px; border-radius: 5px; background: #334155; outline: none; }
+    .param input[type="range"]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: #ec4899; border-radius: 50%; cursor: pointer; box-shadow: 0 0 8px rgba(236,72,153,0.5); }
+    .val { font-weight: bold; color: #f472b6; margin-left: 12px; font-size: 1.1em; }
+    select { width: 100%; padding: 10px; border-radius: 8px; background: #334155; color: #e2e8f0; border: 1px solid #475569; font-size: 1em; }
+    .result { margin-top: 22px; padding: 16px; border-radius: 12px; font-weight: bold; text-align: center; font-size: 1.35em; transition: all 0.3s; }
+    .success { background: linear-gradient(135deg, #166534, #22c55e); color: white; }
+    .fail { background: linear-gradient(135deg, #991b1b, #dc2626); color: white; }
+    .footer { text-align: center; padding: 40px; color: #64748b; font-size: 0.9em; }
+    .badge { display: inline-block; background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7em; margin-left: 8px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>nMaze<span class="badge">™</span></h1>
+  <p>Design. Predict. Deliver.</p>
+</div>
+
+<div class="container" id="organs"></div>
+
+<div class="footer">
+  nMaze™ v1.2 — 9 Organs. Breast Cancer Added.
+</div>
+
+<script>
+const organs = [
+  {id:'brain', name:'Brain (GBM)', t:7.5, f:8.0, r:6.0, icon:'Brain'},
+  {id:'lung', name:'Lung (NSCLC)', t:7.5, f:7.0, r:5.0, icon:'Lungs'},
+  {id:'liver', name:'Liver (HCC)', t:8.0, f:7.0, r:5.0, icon:'Liver'},
+  {id:'colon', name:'Colon (CRC)', t:7.0, f:8.0, r:6.0, icon:'Colon'},
+  {id:'kidney', name:'Kidney (RCC)', t:6.0, f:7.5, r:4.0, icon:'Kidney'},
+  {id:'heart', name:'Heart (CAD)', t:7.0, f:7.5, r:5.0, icon:'Heart'},
+  {id:'pancreas', name:'Pancreas (PDAC)', t:6.5, f:7.8, r:7.0, icon:'Pancreas'},
+  {id:'skin', name:'Skin (Melanoma)', t:7.8, f:8.5, r:4.5, icon:'Skin'},
+  {id:'breast', name:'Breast (TNBC/HER2+)', t:7.2, f:8.2, r:5.5, icon:'Breast'}  // NEW: BREAST CANCER
+];
+
+const values = {};
+
+organs.forEach(o => {
+  values[o.id] = {t: o.t, f: o.f, r: o.r, mat: 10};
+  document.getElementById('organs').innerHTML += `
+    <div class="card">
+      <h3>${o.icon} ${o.name}</h3>
+      <div class="param"><label>T (Size/PEG): <span class="val" id="${o.id}_t">${o.t}</span></label>
+        <input type="range" min="0" max="10" step="0.1" value="${o.t}" oninput="update('${o.id}', 't', this.value)">
+      </div>
+      <div class="param"><label>F (Ligand): <span class="val" id="${o.id}_f">${o.f}</span></label>
+        <input type="range" min="0" max="10" step="0.1" value="${o.f}" oninput="update('${o.id}', 'f', this.value)">
+      </div>
+      <div class="param"><label>R (Barrier): <span class="val" id="${o.id}_r">${o.r}</span></label>
+        <input type="range" min="0" max="10" step="0.1" value="${o.r}" oninput="update('${o.id}', 'r', this.value)">
+      </div>
+      <div class="param"><label>Material: 
+        <select onchange="values['${o.id}'].mat = this.value; calc('${o.id}')">
+          <option value="10">Lipid</option>
+          <option value="9">Polymeric</option>
+          <option value="8">Metallic</option>
+        </select>
+      </label></div>
+      <div id="${o.id}_result" class="result fail">Calculating...</div>
+    </div>`;
+});
+
+function update(organ, param, val) {
+  values[organ][param] = parseFloat(val);
+  document.getElementById(`${organ}_${param}`).textContent = val;
+  calc(organ);
+}
+
+function calc(organ) {
+  const v = values[organ];
+  let A, P, Rt, M, score;
+
+  if (organ === 'brain') {
+    A = Math.min(10, v.f * (1 + 0.18 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.75) * (1 - 0.25 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 7.5), 2) / 6);
+    M = 1 + 0.05 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'lung') {
+    A = Math.min(10, v.f * (1 + 0.16 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.7) * (1 - 0.22 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 6.5), 2) / 5.5);
+    M = 1 + 0.04 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'liver') {
+    A = Math.min(10, v.f * (1 + 0.20 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.75) * (1 - 0.22 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 6.5), 2) / 5.5);
+    M = 1 + 0.06 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'colon') {
+    A = Math.min(10, v.f * (1 + 0.15 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.7) * (1 - 0.20 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 6.0), 2) / 6);
+    M = 1 + 0.04 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'kidney') {
+    A = Math.min(10, v.f * (1 + 0.22 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.8) * (1 - 0.28 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 7.0), 2) / 5);
+    M = 1 + 0.07 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'heart') {
+    A = Math.min(10, v.f * (1 + 0.17 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.72) * (1 - 0.23 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 7.0), 2) / 5.5);
+    M = 1 + 0.05 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'pancreas') {
+    A = Math.min(10, v.f * (1 + 0.19 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.85) * (1 - 0.26 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 7.8), 2) / 5.2);
+    M = 1 + 0.065 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'skin') {
+    A = Math.min(10, v.f * (1 + 0.24 * v.t));
+    P = Math.min(10, 10 - Math.pow(v.r, 0.6) * (1 - 0.30 * (10 - v.t)));
+    Rt = Math.min(10, 10 - Math.pow((v.f - 8.5), 2) / 4.8);
+    M = 1 + 0.08 * (10 - v.r) * (v.f / 10);
+  }
+  else if (organ === 'breast') {
+    // BREAST CANCER (TNBC/HER2+) — Tuned for EPR + targeting
+    A = Math.min(10, v.f * (1 + 0.21 * v.t));  // EPR effect + small size
+    P = Math.min(10, 10 - Math.pow(v.r, 0.68) * (1 - 0.27 * (10 - v.t)));  // Stroma + vascular leak
+    Rt = Math.min(10, 10 - Math.pow((v.f - 8.2), 2) / 5.0);  // HER2, EGFR, folate, trastuzumab
+    M = 1 + 0.07 * (10 - v.r) * (v.f / 10);  // Immune + stromal evasion
+  }
+
+  score = Math.min(100, A * P * Rt * M * v.mat / 100);
+
+  const el = document.getElementById(`${organ}_result`);
+  el.textContent = score >= 70 ? `DELIVERS! ${score.toFixed(1)}%` : `BLOCKED ${score.toFixed(1)}%`;
+  el.className = score >= 70 ? 'result success' : 'result fail';
+}
+
+// Initialize all
+setTimeout(() => organs.forEach(o => calc(o.id)), 100);
+</script>
+
+</body>
+</html>
