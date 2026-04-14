@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HeapWise AI - DUHA Orchestrator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      width: 420px;
+      min-height: 600px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    
+    .memory-bar {
+      transition: all 0.5s ease;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(20, 184, 166, 0.3);
+    }
+    
+    .pulse-dot {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .gradient-teal {
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    }
+    
+    .glow-text {
+      text-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #14b8a6;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="text-white overflow-x-hidden">
+  <!-- Header -->
+  <div class="gradient-teal p-4 rounded-b-2xl shadow-lg">
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="text-xl font-bold glow-text">🧠 HeapWise AI</h1>
+      <span class="text-xs bg-white/20 px-2 py-1 rounded-full">DUHA v1.0</span>
+    </div>
+    <p class="text-sm text-white/90">📱 Redmi 11T • Srinagar</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="p-4 space-y-4">
+    
+    <!-- Phase 0: Live Device Profiler -->
+    <div class="bg-slate-800/50 rounded-xl p-4 backdrop-blur-sm border border-slate-700">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-teal-400">Phase 0: Live Device Profiler</h2>
+        <button id="refreshBtn" class="text-xs bg-teal-600 hover:bg-teal-500 px-3 py-1 rounded-full transition-colors">
+          🔄 Refresh Phone State
+        </button>
+      </div>
+      
+      <!-- Memory Gauge -->
+      <div class="mb-3">
+        <div class="flex justify-between text-xs mb-1">
+          <span class="text-slate-400">Total RAM: <span class="text-white font-medium">8.0 GB</span></span>
+          <span class="text-slate-400">Safe Budget: <span id="safeBudgetDisplay" class="text-teal-400 font-bold">-- GB</span></span>
+        </div>
+        <div class="h-6 bg-slate-700 rounded-full overflow-hidden flex memory-bar">
+          <div id="usedBar" class="bg-gradient-to-r from-red-500 to-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
+          <div id="bufferBar" class="bg-gradient-to-r from-yellow-500 to-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
+          <div id="safeBar" class="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-xs mt-2">
+          <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-1"></span>Used Apps</span>
+          <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-yellow-500 mr-1"></span>OS Buffer (1.9 GB)</span>
+          <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-teal-500 mr-1"></span>Safe Budget</span>
+        </div>
+      </div>
+      
+      <!-- Live Stats -->
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-slate-900/50 rounded-lg p-2">
+          <p class="text-slate-400">Used by System</p>
+          <p id="usedMemory" class="text-lg font-bold text-orange-400">-- GB</p>
+          <p class="text-slate-500 text-xs">Photos, docs, Gallery AI, voice assistant, cached files</p>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-2">
+          <p class="text-slate-400">Available for AI</p>
+          <p id="availableMemory" class="text-lg font-bold text-teal-400">-- GB</p>
+          <p class="text-slate-500 text-xs">After OS + buffer reservation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 1: Richardson Exploration -->
+    <div class="bg-slate-800/50 rounded-xl p-4 backdrop-blur-sm border border-slate-700">
+      <h2 class="text-sm font-semibold text-teal-400 mb-3">Phase 1: Richardson Exploration</h2>
+      <div class="space-y-2">
+        <button class="model-btn w-full bg-slate-900/50 hover:bg-slate-700 border border-slate-600 hover:border-teal-500 rounded-lg p-3 text-left transition-all card-hover" data-model="qwen14b">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-medium text-white">Qwen2.5-14B</p>
+              <p class="text-xs text-slate-400">Large language model • Requires compression</p>
+            </div>
+            <span class="text-xs bg-slate-700 px-2 py-1 rounded">~8.2 GB</span>
+          </div>
+        </button>
+        
+        <button class="model-btn w-full bg-slate-900/50 hover:bg-slate-700 border border-slate-600 hover:border-teal-500 rounded-lg p-3 text-left transition-all card-hover" data-model="qwen7b">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-medium text-white">Qwen2.5-7B</p>
+              <p class="text-xs text-slate-400">Balanced performance • Q4_K_M quantized</p>
+            </div>
+            <span class="text-xs bg-slate-700 px-2 py-1 rounded">~4.5 GB</span>
+          </div>
+        </button>
+        
+        <button class="model-btn w-full bg-slate-900/50 hover:bg-slate-700 border border-slate-600 hover:border-teal-500 rounded-lg p-3 text-left transition-all card-hover" data-model="phi4mini">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-medium text-white">Phi-4-mini 3.8B</p>
+              <p class="text-xs text-slate-400">Lightweight • Native fit</p>
+            </div>
+            <span class="text-xs bg-slate-700 px-2 py-1 rounded">~2.4 GB</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Phase 2: Adaptive Compression Engine -->
+    <div id="compressionSection" class="bg-slate-800/50 rounded-xl p-4 backdrop-blur-sm border border-slate-700 hidden">
+      <h2 class="text-sm font-semibold text-teal-400 mb-3">Phase 2: Adaptive Compression Engine</h2>
+      <div id="compressionProgress" class="space-y-3">
+        <div class="flex justify-between text-sm">
+          <span id="compressionModelName" class="text-white">--</span>
+          <span id="compressionStatus" class="text-teal-400">Waiting...</span>
+        </div>
+        <div class="h-3 bg-slate-700 rounded-full overflow-hidden">
+          <div id="compressionBar" class="gradient-teal h-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="text-xs text-slate-400">
+          <p>Original: <span id="originalSize" class="text-white">--</span></p>
+          <p>Compressed: <span id="compressedSize" class="text-teal-400 font-bold">--</span></p>
+          <p>Target Safe Budget: <span id="targetBudget" class="text-teal-400">--</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Sorites Pruning -->
+    <div id="soritesSection" class="bg-slate-800/50 rounded-xl p-4 backdrop-blur-sm border border-slate-700 hidden">
+      <h2 class="text-sm font-semibold text-teal-400 mb-3">Phase 3: Sorites Pruning</h2>
+      <p class="text-xs text-slate-400 mb-3 italic">
+        🏛️ "No single best model — any in the heap is good enough." 
+      </p>
+      <div id="heapContainer" class="grid grid-cols-2 gap-2">
+        <!-- Heap cards will be dynamically inserted here -->
+      </div>
+    </div>
+
+    <!-- Phase 4: Heap-Converged Deployment -->
+    <div id="deploymentSection" class="bg-slate-800/50 rounded-xl p-4 backdrop-blur-sm border border-slate-700 hidden">
+      <h2 class="text-sm font-semibold text-teal-400 mb-3">Phase 4: Heap-Converged Deployment</h2>
+      <button id="launchBtn" class="w-full gradient-teal hover:opacity-90 text-white font-semibold py-3 px-4 rounded-xl transition-all card-hover shadow-lg">
+        🚀 Launch Any From Heap
+      </button>
+    </div>
+
+    <!-- Success Message -->
+    <div id="successMessage" class="hidden bg-gradient-to-r from-teal-600 to-emerald-600 rounded-xl p-4 text-center">
+      <div class="text-3xl mb-2">✅</div>
+      <p class="font-semibold text-white">Model launched successfully!</p>
+      <p class="text-xs text-white/80 mt-1">Model launched with safe resource lock. Co-existing peacefully with your photos, docs and other AI tools.</p>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="p-4 text-center border-t border-slate-700">
+    <p class="text-xs text-slate-500">DUHA v1.0 • Built from Sorites + Richardson algorithm</p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
