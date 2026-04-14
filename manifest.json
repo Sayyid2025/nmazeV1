@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "HeapWise AI - DUHA Orchestrator",
+  "version": "1.0",
+  "description": "Dynamic User-Aware Heap Orchestrator (DUHA) - AI resource manager simulator for Android devices",
+  "permissions": [],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "HeapWise AI - DUHA Orchestrator",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
